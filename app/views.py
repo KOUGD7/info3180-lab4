@@ -10,6 +10,7 @@ from flask import render_template, request, redirect, url_for, flash, session, a
 from werkzeug.utils import secure_filename
 
 from .forms import UploadForm
+from flask import send_from_directory
 
 ###
 # Routing for your application.
@@ -24,14 +25,14 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Mike Gold")
 
 
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
 
-    #if not session.get('logged_in'):
-    #    abort(401)
+    if not session.get('logged_in'):
+        abort(401)
 
     # Instantiate your form class
     myform = UploadForm()
@@ -51,6 +52,12 @@ def upload():
 
     return render_template('upload.html', form = myform)
 
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    #print(app.config['UPLOAD_FOLDER'], filename)
+    rootdir = os.getcwd()
+    return send_from_directory(os.path.join(rootdir, app.config['UPLOAD_FOLDER']), filename)
+
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -65,6 +72,14 @@ def login():
             return redirect(url_for('upload'))
     return render_template('login.html', error=error)
 
+@app.route('/files')
+def files():
+    if not session.get('logged_in'):
+        abort(401)
+    files = get_uploaded_images()
+    return render_template('files.html', files = files)
+
+
 
 @app.route('/logout')
 def logout():
@@ -72,7 +87,17 @@ def logout():
     flash('You were logged out', 'success')
     return redirect(url_for('home'))
 
-
+def get_uploaded_images():
+    rootdir = app.config['UPLOAD_FOLDER']
+    print (rootdir)
+    lst = []
+    for subdir, dirs, files in os.walk(rootdir):
+        for f in files:
+            if len(f) > 3:
+                if f[-3:] in ['jpg', 'png']:
+                    lst.append(f)
+    print(lst)
+    return lst
 ###
 # The functions below should be applicable to all Flask apps.
 ###
