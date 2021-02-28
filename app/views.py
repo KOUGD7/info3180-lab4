@@ -29,21 +29,21 @@ def about():
 
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
-    myform = UploadForm()
 
-    if not session.get('logged_in'):
-        abort(401)
+    #if not session.get('logged_in'):
+    #    abort(401)
 
     # Instantiate your form class
+    myform = UploadForm()
 
     # Validate file upload on submit
     if request.method == 'POST' and myform.validate_on_submit():
         # Get file data and save to your uploads folder
-        photo = myform.photo.data
+        photo = myform.upload.data
 
         filefolder = app.config['UPLOAD_FOLDER']
         filename = secure_filename(photo.filename)
-        
+
         photo.save(os.path.join(filefolder,filename))
 
         flash('File Saved', 'success')
